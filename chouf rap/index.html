@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHOUF RAP - Services de Promotion Musicale</title>
+    
+    <!-- Google Fonts: Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics-compat.js"></script>
+
+    <style>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #000;
+            color: #fff;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Utility Classes */
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        /* Touch-friendly improvements */
+        @media (hover: none) {
+            .btn, .card, .input-field, a {
+                -webkit-tap-highlight-color: transparent;
+            }
+            
+            .btn:active {
+                transform: scale(0.98);
+            }
+            
+            .card:active {
+                transform: translateY(-2px);
+            }
+            
+            .input-field {
+                font-size: 16px; /* Prevents iOS zoom on focus */
+            }
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            position: relative;
+            background: #1a1a1a;
+            margin: 15% auto;
+            padding: 2rem;
+            border-radius: 1rem;
+            width: 90%;
+            max-width: 500px;
+            border: 1px solid rgba(254, 74, 47, 0.3);
+        }
+
+        .price-tag {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+            font-size: 2.5rem;
+        }
+
+        .price-amount {
+            font-size: 1.2em;
+            font-weight: 800;
+            background: linear-gradient(90deg, #FE4A2F 0%, #F93153 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .currency {
+            font-size: 1em;
+            opacity: 0.9;
+            font-weight: 600;
+            color: #FE4A2F;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .quantity-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(254, 74, 47, 0.2);
+            color: #fff;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .quantity-btn:hover {
+            background: rgba(254, 74, 47, 0.4);
+        }
+
+        .quantity-display {
+            font-size: 1.5rem;
+            min-width: 3rem;
+            text-align: center;
+        }
+
+        .price-summary {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .gradient-text {
+            background: linear-gradient(90deg, #FE4A2F 0%, #F93153 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(90deg, #FE4A2F 0%, #F93153 100%);
+        }
+
+        .section {
+            padding: 4rem 0;
+        }
+
+        .grid {
+            display: grid;
+            gap: 2rem;
+        }
+
+        .flex {
+            display: flex;
+            align-items: center;
+        }
+
+        /* Typography */
+        h1, h2, h3, h4 {
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        h1 { font-size: 3.5rem; }
+        h2 { font-size: 2.5rem; }
+        h3 { font-size: 2rem; }
+        h4 { font-size: 1.5rem; }
+
+        /* Buttons and Interactive Elements */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            border: none;
+            color: #fff;
+            gap: 0.5rem;
+            min-width: 120px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, #FE4A2F 0%, #F93153 100%);
+        }
+
+        .btn-secondary {
+            background: rgba(254, 74, 47, 0.1);
+            border: 1px solid #FE4A2F;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(254, 74, 47, 0.3);
+        }
+
+        /* Cards and Containers */
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(254, 74, 47, 0.2);
+        }
+
+        /* Header & Navigation */
+        header {
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            background: rgba(0, 0, 0, 0.8);
+            transition: padding 0.3s ease;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        @media (max-width: 768px) {
+            header {
+                padding: 1rem 0;
+            }
+            
+            .logo {
+                font-size: 1.25rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            header {
+                padding: 0.75rem 0;
+            }
+            
+            .nav {
+                text-align: center;
+            }
+            
+            .nav-links {
+                width: 100%;
+            }
+            
+            .nav-links .btn {
+                margin: 0;
+            }
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: calc(100vh - 100px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-video {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            z-index: -1;
+            object-fit: cover;
+        }
+        
+        @media (max-width: 768px) {
+            .hero {
+                min-height: calc(100vh - 80px);
+            }
+            
+            .hero-video {
+                transform: translate(-50%, -50%) scale(1.5);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .hero {
+                min-height: calc(100vh - 70px);
+            }
+            
+            .hero-video {
+                transform: translate(-50%, -50%) scale(2);
+            }
+        }
+
+        .hero-content {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 2rem;
+            border-radius: 1rem;
+            backdrop-filter: blur(8px);
+        }
+
+        @media (max-width: 768px) {
+            .hero-video {
+                transform: translate(-50%, -50%) scale(2);
+            }
+        }
+
+        /* Offers Grid */
+        .offers-grid {
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        }
+
+        /* Reviews Section */
+        .reviews-grid {
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        }
+
+        .star-rating {
+            color: #FE4A2F;
+            font-size: 1.5rem;
+        }
+
+        /* Reels Gallery */
+        .reels-grid {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        }
+
+        .reel-card {
+            aspect-ratio: 9/16;
+            position: relative;
+            overflow: hidden;
+            border-radius: 1rem;
+        }
+
+        .reel-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .reel-card:hover .reel-overlay {
+            opacity: 1;
+        }
+
+        .reel-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(0deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 100%);
+            display: flex;
+            align-items: flex-end;
+            padding: 1rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-family: inherit;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #FE4A2F;
+        }
+.flex.justify-center.gap-4.mt-8
+ {
+    justify-content: center;
+    gap: 0.4rem;
+}
+        /* Footer */
+        footer {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 4rem 0 2rem;
+            margin-top: 4rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            h1 { font-size: 2.5rem; }
+            h2 { font-size: 2rem; }
+            h3 { font-size: 1.75rem; }
+            h4 { font-size: 1.25rem; }
+            .image-cover{
+            max-width: 300px;
+            }
+
+            .section { padding: 2rem 0; }
+            .container { width: 95%; padding: 0.5rem; }
+            
+            .hero-content {
+                padding: 1.5rem;
+                margin: 0 0.5rem;
+            }
+            
+            .card {
+                padding: 1.5rem;
+            }
+            
+            .flex {
+                flex-wrap: wrap;
+            }
+            
+            .grid {
+                gap: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 { font-size: 2rem; }
+            h2 { font-size: 1.75rem; }
+            h3 { font-size: 1.5rem; }
+            h4 { font-size: 1.2rem; }
+            
+            .btn {
+                width: 100%;
+                margin-bottom: 0.5rem;
+                padding: 0.6rem 1rem;
+                font-size: 0.95rem;
+            }
+
+            .nav {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .hero-content {
+                padding: 1rem;
+            }
+            
+            .card {
+                padding: 1rem;
+            }
+            
+            .offers-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .reviews-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .reels-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.75rem;
+            }
+            
+            .form-group {
+                margin-bottom: 1rem;
+            }
+            
+            .input-field {
+                padding: 0.75rem;
+            }
+            
+            footer {
+                padding: 2rem 0 1rem;
+                margin-top: 2rem;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <!-- Header Section -->
+    <header>
+        <nav class="nav container">
+            <div class="logo gradient-text">CHOUF RAP</div>
+
+            <div class="nav-links">
+                <button onclick="toggleLanguage()" class="btn btn-secondary">
+                    <span class="material-icons">language</span>
+                    <span class="lang-switch">Français</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <img src="https://i.ibb.co/dXxdPV9/image.png" alt="CHOUF RAP" class="image-cover" >
+
+        <video 
+            id="hero-video"
+            class="hero-video" 
+            autoplay 
+            muted 
+            loop 
+            playsinline 
+            preload="auto"
+            poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25' viewBox='0 0 1 1'%3E%3Crect width='1' height='1' fill='%23000000'/%3E%3C/svg%3E"
+        >
+            <source src="https://tpxoffwhyeyubvzhfmel.supabase.co/storage/v1/object/public/artworks/0918.mp4" type="video/mp4">
+        </video>
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="gradient-text" data-lang="hero.title">CHOUF RAP</h1>
+                <p class="text-xl" data-lang="hero.subtitle">Kber m3ana f 3alam rap</p>
+                <p class="text-lg" data-lang="hero.stats">10K+ followers | 1M+ views</p>
+                <div class="flex justify-center gap-4 mt-8">
+                    <button class="btn btn-primary" onclick="redirectToWhatsApp()">
+                        <span class="material-icons">chat</span>
+                        <span data-lang="cta.contact">Twasel m3ana</span>
+                    </button>
+                    <a href="#offers" class="btn btn-secondary">
+                        <span class="material-icons">local_offer</span>
+                        <span data-lang="cta.offers">Chouf l3roud</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Offers Section -->
+    <section id="offers" class="section">
+        <div class="container">
+            <h2 class="gradient-text text-center mb-8" data-lang="offers.title">L3roud dyalna</h2>
+            <div class="offers-grid">
+                <!-- Offer cards will be dynamically populated -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Reviews Section -->
+    <section id="reviews" class="section">
+        <div class="container">
+            <h2 class="gradient-text text-center mb-8" data-lang="reviews.title">Ara2 nas</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="card">
+                    <h3 data-lang="reviews.subtitle">Chno galo 3lina</h3>
+                    <div class="reviews-grid mt-4">
+                        <!-- Reviews will be dynamically loaded -->
+                    </div>
+                </div>
+                <div class="card">
+                    <form id="review-form" onsubmit="return postComment(event)">
+                        <div class="form-group">
+                            <label for="name" data-lang="reviews.form.name">Smiytek</label>
+                            <input type="text" id="name" class="input-field" required minlength="2">
+                        </div>
+                        <div class="form-group">
+                            <label for="comment" data-lang="reviews.form.comment">Kteb ra2yek</label>
+                            <textarea id="comment" class="input-field" required minlength="5" rows="4"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <div class="star-rating" id="star-rating">
+                                <span class="material-icons" data-rating="1">star_border</span>
+                                <span class="material-icons" data-rating="2">star_border</span>
+                                <span class="material-icons" data-rating="3">star_border</span>
+                                <span class="material-icons" data-rating="4">star_border</span>
+                                <span class="material-icons" data-rating="5">star_border</span>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-full">
+                            <span class="material-icons">send</span>
+                            <span data-lang="reviews.form.submit">Sifit</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Reels Gallery -->
+    <section id="gallery" class="section">
+        <div class="container">
+            <h2 class="gradient-text text-center mb-8" data-lang="gallery.title">Reels</h2>
+            <div class="reels-grid">
+                <!-- Reels will be dynamically loaded -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="gradient-text" data-lang="footer.contact">Twassel m3ana</h3>
+                    <p class="mt-4">
+                        <a href="https://wa.me/212681534492" class="flex items-center gap-2 text-white hover:text-green-500 transition-colors">
+                            <i class="fab fa-whatsapp text-2xl"></i>
+                            +212 681-534492
+                        </a>
+                    </p>
+                </div>
+                <div>
+                    <h3 class="gradient-text" data-lang="footer.follow">Tab3na</h3>
+                    <p class="mt-4">
+                        <a href="https://instagram.com/chouf_rap_" target="_blank" class="flex items-center gap-2 text-white hover:text-pink-500 transition-colors">
+                            <i class="fab fa-instagram text-2xl"></i>
+                            @chouf_rap_
+                        </a>
+                    </p>
+                </div>
+                <div>
+                    <p class="text-sm opacity-75" data-lang="footer.copyright">© 2025 CHOUF RAP. Kol l7o9o9 ma7foda.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Quantity Selection Modal -->
+    <div id="quantity-modal" class="modal">
+        <div class="modal-content">
+            <h3 class="gradient-text" id="modal-title"></h3>
+            <div class="quantity-controls">
+                <button class="quantity-btn" onclick="updateQuantity(-1)">-</button>
+                <span class="quantity-display" id="quantity-display">1</span>
+                <button class="quantity-btn" onclick="updateQuantity(1)">+</button>
+            </div>
+            <div class="price-summary">
+                <p>Prix par unité: <span id="unit-price"></span> Dhs</p>
+                <p>Prix avec réduction: <span id="discounted-price"></span> Dhs</p>
+                <p class="text-xl mt-4">Total: <span id="total-price" class="gradient-text font-bold"></span> Dhs</p>
+            </div>
+            <div class="flex gap-4 mt-6">
+                <button class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+                <button class="btn btn-primary" onclick="confirmOrder()">Commander</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyA_pBoeKgcx_uaAN-gIeSzj4UY-DiCkFD4",
+            authDomain: "thecaphere-e5374.firebaseapp.com",
+            databaseURL: "https://thecaphere-e5374-default-rtdb.firebaseio.com",
+            projectId: "thecaphere-e5374",
+            storageBucket: "thecaphere-e5374.firebasestorage.app",
+            messagingSenderId: "25177142849",
+            appId: "1:25177142849:web:60eaf904d3d6fa439af8c0",
+            measurementId: "G-YKCS1BJCVJ"
+        };
+
+        // Language strings for the entire site
+        const langStrings = {
+            darija: {
+                'nav.language': 'Français',
+                'hero.title': 'CHOUF RAP',
+                'hero.subtitle': 'Kber m3ana f 3alam Rap',
+                'hero.stats': '10K+ followers | 1M+ views',
+                'hero.instagram': '@chouf_rap_',
+                'cta.contact': 'Twasel m3ana',
+                'cta.offers': 'Akhir l3roud',
+                'cta.reviews': 'Ash kalo 3lina',
+                'offers.title': 'L3roud dyalna',
+                'offers.description': 'Khtar l3ard li Ynasbek',
+                'offers.button': 'Douz whatsapp',
+                'offers.details': 'Details',
+                'offers.contact': 'Twassel m3aya: ',
+                'reviews.title': 'les review dyalkom',
+                'reviews.subtitle': 'Chno galo 3lina',
+                'reviews.form.name': 'Smiytek',
+                'reviews.form.comment': 'Kteb ra2yek',
+                'reviews.form.submit': 'Sayfet',
+                'reviews.anonymous': 'Bla smiya',
+                'gallery.title': 'Reels',
+                'gallery.subtitle': 'Chouf akhir videos',
+                'footer.contact': 'Twassel m3ana',
+                'footer.follow': 'Tab3 l\'page',
+                'footer.copyright': '© 2025 CHOUF RAP. copyright.'
+            },
+            fr: {
+                'nav.language': 'Darija',
+                'hero.title': 'CHOUF RAP',
+                'hero.subtitle': 'Grandissez dans le monde du rap',
+                'hero.stats': '10K+ abonnés | 1M+ vues',
+                'hero.instagram': '@chouf_rap_',
+                'cta.contact': 'Contactez-nous',
+                'cta.offers': 'Voir les offres',
+                'cta.reviews': 'Avis',
+                'offers.title': 'Nos Offres',
+                'offers.description': 'Choisissez votre offre et contactez-nous',
+                'offers.button': 'Acheter',
+                'offers.details': 'Détails',
+                'offers.contact': 'Contactez-nous: ',
+                'reviews.title': 'Avis Clients',
+                'reviews.subtitle': 'Ce que disent nos clients',
+                'reviews.form.name': 'Votre nom',
+                'reviews.form.comment': 'Votre avis',
+                'reviews.form.submit': 'Envoyer',
+                'reviews.anonymous': 'Anonyme',
+                'gallery.title': 'Reels',
+                'gallery.subtitle': 'Nos dernières vidéos',
+                'footer.contact': 'Contactez-nous',
+                'footer.follow': 'Suivez-nous',
+                'footer.copyright': '© 2025 CHOUF RAP. Tous droits réservés.'
+            }
+        };
+        
+        // Current language state
+        let currentLang = 'darija';
+        
+        // Language toggle function
+        function toggleLanguage() {
+            currentLang = currentLang === 'darija' ? 'fr' : 'darija';
+            updatePageLanguage();
+            
+            // Update toggle button text
+            document.querySelector('.lang-switch').textContent = langStrings[currentLang]['nav.language'];
+            
+            // Save language preference
+            localStorage.setItem('preferred-lang', currentLang);
+        }
+        
+        // Update all text content on the page
+        function updatePageLanguage() {
+            document.querySelectorAll('[data-lang]').forEach(element => {
+                const key = element.getAttribute('data-lang');
+                if (langStrings[currentLang][key]) {
+                    element.textContent = langStrings[currentLang][key];
+                }
+            });
+        }
+
+        // Firebase and Database functions
+        function initFirebase() {
+            firebase.initializeApp(firebaseConfig);
+            firebase.analytics();
+            
+            // Start listening for data
+            fetchComments();
+            fetchReels();
+            fetchOffers();
+        }
+
+        // Fetch and display offers
+        function fetchOffers() {
+            const db = firebase.database();
+            const offersRef = db.ref('offers');
+            
+            offersRef.on('value', (snapshot) => {
+                const offersContainer = document.querySelector('.offers-grid');
+                offersContainer.innerHTML = '';
+                
+                const offers = snapshot.val() || {};
+                Object.values(offers)
+                    .sort((a, b) => (a.order || 0) - (b.order || 0))
+                    .forEach(offer => {
+                        if (!offer.title || !offer.price) {
+                            console.warn('Skipping offer with missing data:', offer);
+                            return;
+                        }
+                        
+                        const offerEl = document.createElement('div');
+                        offerEl.className = 'card';
+                        offerEl.dataset.offerId = offer.id;
+                        offerEl.offer = offer; // Store the offer data for easy access
+                        const defaultImage = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24"%3E%3Cpath fill="%23FE4A2F" d="M19 5v14H5V5h14m0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-4.86 8.86l-3 3.87L9 13.14 6 17h12l-3.86-5.14z"/%3E%3C/svg%3E';
+                        offerEl.innerHTML = `
+                            ${offer.cover ? `<img src="${offer.cover}" alt="${offer.title}" class="w-full h-48 object-cover rounded-lg mb-4" onerror="this.src='${defaultImage}'">` : 
+                            `<div class="w-full h-48 bg-gray-800 rounded-lg mb-4 flex items-center justify-center">
+                                <img src="${defaultImage}" alt="placeholder" class="w-16 h-16">
+                            </div>`}
+                            <h3 class="gradient-text">${offer.title}</h3>
+                            <p class="price-tag text-4xl font-bold mt-4">
+                                <span class="price-amount">${typeof offer.price === 'number' ? offer.price.toLocaleString() : offer.price}</span>
+                                <span class="currency">Dhs</span>
+                            </p>
+                            <div class="mt-4">
+                                ${offer.features?.map(feature => `
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="material-icons text-green-500">check_circle</span>
+                                        <span>${feature}</span>
+                                    </div>
+                                `).join('') || ''}
+                            </div>
+                            <button onclick="redirectToWhatsApp('${offer.id}')" class="btn btn-primary w-full mt-6">
+                                <i class="fab fa-whatsapp"></i>
+                                <span data-lang="offers.button">${langStrings[currentLang]['offers.button']}</span>
+                            </button>
+                        `;
+                        offersContainer.appendChild(offerEl);
+                    });
+            });
+        }
+
+        // Fetch and display comments
+        function fetchComments() {
+            const db = firebase.database();
+            const commentsRef = db.ref('comments');
+            
+            commentsRef.on('value', (snapshot) => {
+                const commentsContainer = document.querySelector('.reviews-grid');
+                commentsContainer.innerHTML = '';
+                
+                const comments = snapshot.val() || {};
+                Object.values(comments)
+                    .sort((a, b) => b.timestamp - a.timestamp)
+                    .slice(0, 5)
+                    .forEach(comment => {
+                        const commentEl = document.createElement('div');
+                        commentEl.className = 'card';
+                        commentEl.innerHTML = `
+                            <div class="star-rating">
+                                ${'★'.repeat(comment.stars)}${'☆'.repeat(5-comment.stars)}
+                            </div>
+                            <p class="mt-2">${comment.text}</p>
+                            <p class="mt-2 text-sm opacity-75">- ${comment.name || langStrings[currentLang]['reviews.anonymous']}</p>
+                        `;
+                        commentsContainer.appendChild(commentEl);
+                    });
+            });
+        }
+
+        // Post a new comment
+        function postComment(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const text = document.getElementById('comment').value;
+            const stars = parseInt(document.querySelector('.star-rating .active:last-child')?.dataset.rating || '5');
+            
+            if (name.length < 2 || text.length < 5) {
+                alert('Please check your input lengths');
+                return false;
+            }
+            
+            const userId = localStorage.getItem('user-id') || 
+                          Math.random().toString(36).substring(2) + Date.now().toString(36);
+            localStorage.setItem('user-id', userId);
+            
+            const db = firebase.database();
+            const commentsRef = db.ref('comments');
+            
+            commentsRef.push({
+                name,
+                text,
+                stars,
+                timestamp: Date.now(),
+                userId
+            });
+            
+            event.target.reset();
+            return false;
+        }
+
+        // Fetch and display reels
+        function fetchReels() {
+            const db = firebase.database();
+            const reelsRef = db.ref('embedReels');
+            
+            reelsRef.on('value', (snapshot) => {
+                const reelsContainer = document.querySelector('.reels-grid');
+                reelsContainer.innerHTML = '';
+                
+                const reels = snapshot.val() || {};
+                Object.values(reels)
+                    .sort((a, b) => b.timestamp - a.timestamp)
+                    .forEach(reel => {
+                        // Skip reels with invalid data
+                        if (!reel.thumbnail || !reel.title) {
+                            console.warn('Skipping reel with missing data:', reel);
+                            return;
+                        }
+                        
+                        const reelEl = document.createElement('div');
+                        reelEl.className = 'reel-card';
+                        
+                        // Use a default link if none provided
+                        const link = reel.link || '#';
+                        
+                        // Use a default placeholder image if thumbnail is invalid
+                        const fallbackImage = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24"%3E%3Cpath fill="%23FE4A2F" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/%3E%3C/svg%3E';
+                        
+                        reelEl.innerHTML = `
+                            <a href="${link}" target="_blank">
+                                <img src="${reel.thumbnail}" alt="${reel.title}" onerror="this.src='${fallbackImage}'">
+                                <div class="reel-overlay">
+                                    <h4>${reel.title}</h4>
+                                </div>
+                            </a>
+                        `;
+                        reelsContainer.appendChild(reelEl);
+            });
+        }
+        )}
+
+        // Current offer selection state
+        let currentOffer = null;
+        let currentQuantity = 1;
+
+        function openModal(offer) {
+            currentOffer = offer;
+            currentQuantity = 1;
+            
+            const modal = document.getElementById('quantity-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const quantityDisplay = document.getElementById('quantity-display');
+            
+            modalTitle.textContent = offer.title;
+            quantityDisplay.textContent = '1';
+            
+            updatePriceSummary();
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('quantity-modal');
+            modal.style.display = 'none';
+            currentOffer = null;
+            currentQuantity = 1;
+        }
+
+        function updateQuantity(change) {
+            const newQuantity = currentQuantity + change;
+            if (newQuantity >= 1) {
+                currentQuantity = newQuantity;
+                document.getElementById('quantity-display').textContent = currentQuantity;
+                updatePriceSummary();
+            }
+        }
+
+        function calculateDiscountedPrice(basePrice, quantity) {
+            const discountPerItem = 10;
+            return Math.max(0, basePrice - (quantity - 1) * discountPerItem);
+        }
+
+        function updatePriceSummary() {
+            if (!currentOffer) return;
+            
+            const basePrice = currentOffer.price;
+            const discountedPrice = calculateDiscountedPrice(basePrice, currentQuantity);
+            const total = discountedPrice * currentQuantity;
+            
+            document.getElementById('unit-price').textContent = basePrice.toLocaleString();
+            document.getElementById('discounted-price').textContent = discountedPrice.toLocaleString();
+            document.getElementById('total-price').textContent = total.toLocaleString();
+        }
+
+        function confirmOrder() {
+            if (!currentOffer) return;
+            
+            const basePrice = currentOffer.price;
+            const discountedPrice = calculateDiscountedPrice(basePrice, currentQuantity);
+            const total = discountedPrice * currentQuantity;
+            
+            const message = encodeURIComponent(
+                `Salam, ana bghit:\n\n` +
+                `${currentQuantity}x ${currentOffer.title}\n` +
+                `Prix original: ${basePrice} Dhs\n` +
+                `Prix avec réduction: ${discountedPrice} Dhs\n` +
+                `Total: ${total} Dhs\n\n` +
+                `Merci!`
+            );
+            
+            window.open(`https://wa.me/212681534492?text=${message}`, '_blank');
+            closeModal();
+        }
+
+        // WhatsApp redirect for general contact
+        function redirectToWhatsApp(offerId = '') {
+            if (offerId) {
+                const offer = findOfferById(offerId);
+                if (offer) {
+                    openModal(offer);
+                    return;
+                }
+            }
+            
+            const message = encodeURIComponent('Salam chouf_rap_');
+            window.open(`https://wa.me/212681534492?text=${message}`, '_blank');
+        }
+
+        function findOfferById(offerId) {
+            // This function will be populated with offers data from Firebase
+            const offersContainer = document.querySelector('.offers-grid');
+            return [...offersContainer.children].find(el => el.dataset.offerId === offerId)?.offer;
+        }
+
+        // Star rating functionality
+        document.getElementById('star-rating')?.addEventListener('click', (e) => {
+            if (e.target.matches('.material-icons')) {
+                const rating = parseInt(e.target.dataset.rating);
+                const stars = document.querySelectorAll('#star-rating .material-icons');
+                
+                stars.forEach(star => {
+                    const starRating = parseInt(star.dataset.rating);
+                    star.textContent = starRating <= rating ? 'star' : 'star_border';
+                    star.classList.toggle('active', starRating <= rating);
+                });
+            }
+        });
+
+        // Handle video playback
+        function initVideoPlayback() {
+            const video = document.getElementById('hero-video');
+            if (!video) return;
+
+            // Function to ensure video is playing
+            function ensureVideoPlaying() {
+                const playPromise = video.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        // Video is playing
+                        console.log('Video playing successfully');
+                    }).catch(error => {
+                        console.log('Video play failed:', error);
+                        // Try playing again after a short delay
+                        setTimeout(() => video.play(), 1000);
+                    });
+                }
+            }
+
+            // Start playing when loaded
+            video.addEventListener('loadeddata', ensureVideoPlaying);
+            
+            // Handle if video stops
+            video.addEventListener('pause', ensureVideoPlaying);
+
+            // Periodically check if video is playing
+            setInterval(() => {
+                if (video.paused) {
+                    ensureVideoPlaying();
+                }
+            }, 5000);
+
+            // Initial play attempt
+            ensureVideoPlaying();
+        }
+
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            initFirebase();
+            initVideoPlayback();
+            
+            // Load saved language preference
+            const savedLang = localStorage.getItem('preferred-lang');
+            if (savedLang && savedLang !== currentLang) {
+                currentLang = savedLang;
+                updatePageLanguage();
+            }
+        });
+    </script>
+</body>
+</html>
