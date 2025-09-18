@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHOUF RAP - Admin Dashboard</title>
+    
+    <!-- Google Fonts: Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-analytics-compat.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #000;
+            color: #fff;
+            line-height: 1.6;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .gradient-text {
+            background: linear-gradient(90deg, #FE4A2F 0%, #F93153 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(90deg, #FE4A2F 0%, #F93153 100%);
+        }
+
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-form {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2rem;
+            border-radius: 1rem;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .dashboard {
+            display: none;
+            padding: 2rem 0;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .tab.active {
+            background: linear-gradient(90deg, #FE4A2F 0%, #F93153 100%);
+        }
+
+        .panel {
+            display: none;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2rem;
+            border-radius: 1rem;
+        }
+
+        .panel.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 0.5rem;
+            color: #fff;
+            font-family: inherit;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #FE4A2F;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            background: linear-gradient(90deg, #FE4A2F 0%, #F93153 100%);
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 500;
+            gap: 0.5rem;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .data-grid {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .data-grid th,
+        .data-grid td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .error {
+            color: #ff4444;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Form -->
+    <div id="login-section" class="login-container">
+        <div class="login-form">
+            <h2 class="gradient-text">Admin Login</h2>
+            <form id="login-form" onsubmit="return handleLogin(event)">
+                <div class="form-group">
+                    <input type="email" id="email" class="input-field" placeholder="Email" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="password" class="input-field" placeholder="Password" required>
+                </div>
+                <button type="submit" class="btn">
+                    <span class="material-icons">login</span>
+                    Login
+                </button>
+                <p id="login-error" class="error"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard-section" class="dashboard">
+        <div class="container">
+            <nav class="nav">
+                <h2 class="gradient-text">CHOUF RAP Admin</h2>
+                <button onclick="handleLogout()" class="btn">
+                    <span class="material-icons">logout</span>
+                    Logout
+                </button>
+            </nav>
+
+            <!-- Stats Overview -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3 id="total-offers">0</h3>
+                    <p>Active Offers</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="total-reels">0</h3>
+                    <p>Reels</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="total-comments">0</h3>
+                    <p>Comments</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="avg-rating">0.0</h3>
+                    <p>Avg. Rating</p>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <div class="tabs">
+                <div class="tab active" onclick="showPanel('offers')">Offers</div>
+                <div class="tab" onclick="showPanel('reels')">Reels</div>
+                <div class="tab" onclick="showPanel('comments')">Comments</div>
+            </div>
+
+            <!-- Offers Panel -->
+            <div id="offers-panel" class="panel active">
+                <h3>Manage Offers</h3>
+                <form id="offer-form" onsubmit="return handleOfferSubmit(event)">
+                    <div class="form-group">
+                        <input type="text" id="offer-title" class="input-field" placeholder="Offer Title" required>
+                    </div>
+                    <div class="form-group">
+                        <textarea id="offer-description" class="input-field" placeholder="Description" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" id="offer-price" class="input-field" placeholder="Price (e.g., 20Dh)" required>
+                    </div>
+                    <div class="form-group">
+                        <textarea id="offer-message" class="input-field" placeholder="WhatsApp Message Template" required></textarea>
+                    </div>
+                    <button type="submit" class="btn">Add Offer</button>
+                </form>
+                <div id="offers-list"></div>
+            </div>
+
+            <!-- Reels Panel -->
+            <div id="reels-panel" class="panel">
+                <h3>Manage Reels</h3>
+                <form id="reel-form" onsubmit="return handleReelSubmit(event)">
+                    <div class="form-group">
+                        <input type="text" id="reel-title" class="input-field" placeholder="Reel Title" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="url" id="reel-link" class="input-field" placeholder="Instagram Reel URL" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="url" id="reel-thumbnail" class="input-field" placeholder="Thumbnail URL" required>
+                    </div>
+                    <button type="submit" class="btn">Add Reel</button>
+                </form>
+                <div id="reels-list"></div>
+            </div>
+
+            <!-- Comments Panel -->
+            <div id="comments-panel" class="panel">
+                <h3>Manage Comments</h3>
+                <div id="comments-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyA_pBoeKgcx_uaAN-gIeSzj4UY-DiCkFD4",
+            authDomain: "thecaphere-e5374.firebaseapp.com",
+            databaseURL: "https://thecaphere-e5374-default-rtdb.firebaseio.com",
+            projectId: "thecaphere-e5374",
+            storageBucket: "thecaphere-e5374.firebasestorage.app",
+            messagingSenderId: "25177142849",
+            appId: "1:25177142849:web:60eaf904d3d6fa439af8c0",
+            measurementId: "G-YKCS1BJCVJ"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.database();
+
+        // Authentication State Observer
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('dashboard-section').style.display = 'block';
+                loadDashboardData();
+            } else {
+                document.getElementById('login-section').style.display = 'flex';
+                document.getElementById('dashboard-section').style.display = 'none';
+            }
+        });
+
+        // Login Handler
+        function handleLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            auth.signInWithEmailAndPassword(email, password)
+                .catch((error) => {
+                    document.getElementById('login-error').textContent = error.message;
+                });
+            return false;
+        }
+
+        // Logout Handler
+        function handleLogout() {
+            auth.signOut();
+        }
+
+        // Tab Navigation
+        function showPanel(panelName) {
+            // Update tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Show selected panel
+            document.querySelectorAll('.panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            document.getElementById(`${panelName}-panel`).classList.add('active');
+        }
+
+        // Load Dashboard Data
+        function loadDashboardData() {
+            // Load Offers
+            db.ref('offers').on('value', (snapshot) => {
+                const offers = snapshot.val() || {};
+                document.getElementById('total-offers').textContent = Object.keys(offers).length;
+                renderOffers(offers);
+            });
+
+            // Load Reels
+            db.ref('embedReels').on('value', (snapshot) => {
+                const reels = snapshot.val() || {};
+                document.getElementById('total-reels').textContent = Object.keys(reels).length;
+                renderReels(reels);
+            });
+
+            // Load Comments
+            db.ref('comments').on('value', (snapshot) => {
+                const comments = snapshot.val() || {};
+                const commentCount = Object.keys(comments).length;
+                document.getElementById('total-comments').textContent = commentCount;
+                
+                // Calculate average rating
+                const totalStars = Object.values(comments).reduce((sum, comment) => sum + comment.stars, 0);
+                const avgRating = commentCount ? (totalStars / commentCount).toFixed(1) : '0.0';
+                document.getElementById('avg-rating').textContent = avgRating;
+                
+                renderComments(comments);
+            });
+        }
+
+        // Render Offers
+        function renderOffers(offers) {
+            const container = document.getElementById('offers-list');
+            container.innerHTML = `
+                <table class="data-grid">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Price</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${Object.entries(offers).map(([id, offer]) => `
+                            <tr>
+                                <td>${offer.title}</td>
+                                <td>${offer.price}</td>
+                                <td>
+                                    <button class="btn" onclick="deleteOffer('${id}')">
+                                        <span class="material-icons">delete</span>
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // Render Reels
+        function renderReels(reels) {
+            const container = document.getElementById('reels-list');
+            container.innerHTML = `
+                <table class="data-grid">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Link</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${Object.entries(reels).map(([id, reel]) => `
+                            <tr>
+                                <td>${reel.title}</td>
+                                <td><a href="${reel.link}" target="_blank">${reel.link}</a></td>
+                                <td>
+                                    <button class="btn" onclick="deleteReel('${id}')">
+                                        <span class="material-icons">delete</span>
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // Render Comments
+        function renderComments(comments) {
+            const container = document.getElementById('comments-list');
+            container.innerHTML = `
+                <table class="data-grid">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Comment</th>
+                            <th>Rating</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${Object.entries(comments).map(([id, comment]) => `
+                            <tr>
+                                <td>${comment.name}</td>
+                                <td>${comment.text}</td>
+                                <td>${'★'.repeat(comment.stars)}${'☆'.repeat(5-comment.stars)}</td>
+                                <td>
+                                    <button class="btn" onclick="deleteComment('${id}')">
+                                        <span class="material-icons">delete</span>
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // Handle Offer Submit
+        function handleOfferSubmit(event) {
+            event.preventDefault();
+            const title = document.getElementById('offer-title').value;
+            const description = document.getElementById('offer-description').value;
+            const price = document.getElementById('offer-price').value;
+            const message = document.getElementById('offer-message').value;
+
+            db.ref('offers').push({
+                title,
+                description,
+                price,
+                whatsAppMessage: message
+            });
+
+            event.target.reset();
+            return false;
+        }
+
+        // Handle Reel Submit
+        function handleReelSubmit(event) {
+            event.preventDefault();
+            const title = document.getElementById('reel-title').value;
+            const link = document.getElementById('reel-link').value;
+            const thumbnail = document.getElementById('reel-thumbnail').value;
+
+            db.ref('embedReels').push({
+                title,
+                link,
+                thumbnail,
+                timestamp: Date.now()
+            });
+
+            event.target.reset();
+            return false;
+        }
+
+        // Delete Functions
+        function deleteOffer(id) {
+            if (confirm('Are you sure you want to delete this offer?')) {
+                db.ref(`offers/${id}`).remove();
+            }
+        }
+
+        function deleteReel(id) {
+            if (confirm('Are you sure you want to delete this reel?')) {
+                db.ref(`embedReels/${id}`).remove();
+            }
+        }
+
+        function deleteComment(id) {
+            if (confirm('Are you sure you want to delete this comment?')) {
+                db.ref(`comments/${id}`).remove();
+            }
+        }
+    </script>
+</body>
+</html>
